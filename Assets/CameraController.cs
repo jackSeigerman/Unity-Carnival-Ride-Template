@@ -2,58 +2,44 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    private Transform cameraTransform;
-    private Vector3 originalPosition;
-    private Quaternion originalRotation;
-    private float rotationSpeed = 5f;
-    private float pitchLimit = 80f;
-    private bool isRotationMode = false;
+    public Transform target; // The target object to follow (your ride)
+    public float moveSpeed = 5f; // Speed at which the camera moves
+    public float rotationSpeed = 2f; // Speed at which the camera rotates
+    public float maxYaw = 360f; // Maximum yaw rotation (unconstrained)
+    public float minPitch = -80f; // Minimum pitch angle
+    public float maxPitch = 80f; // Maximum pitch angle
+    public Vector2 minBounds = new Vector2(-10f, -10f); // Minimum XZ bounds
+    public Vector2 maxBounds = new Vector2(10f, 10f); // Maximum XZ bounds
 
-    void Start()
+    private float currentPitch = 0f;
+
+    private void Update()
     {
-        cameraTransform = Camera.main.transform;
-        originalPosition = cameraTransform.position;
-        originalRotation = cameraTransform.rotation;
-    }
+        // Check for input to control camera movement
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float verticalInput = Input.GetAxis("Vertical");
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            // Toggle between rotation mode and default mode
-            isRotationMode = !isRotationMode;
-            if (isRotationMode)
-            {
-                // Enter rotation mode
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
-            else
-            {
-                // Exit rotation mode
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-                RestoreOriginalPositionAndRotation();
-            }
-        }
+        Vector3 moveDirection = new Vector3(horizontalInput, 0f, verticalInput).normalized;
 
-        if (isRotationMode)
-        {
-            // Rotate the camera using arrow keys
-            float pitch = cameraTransform.rotation.eulerAngles.x;
-            float yaw = cameraTransform.rotation.eulerAngles.y;
+        // Calculate new position based on input
+        Vector3 newPosition = transform.position + moveDirection * moveSpeed * Time.deltaTime;
 
-            pitch -= Input.GetAxis("Vertical") * rotationSpeed;
-            pitch = Mathf.Clamp(pitch, -pitchLimit, pitchLimit);
-            yaw += Input.GetAxis("Horizontal") * rotationSpeed;
+        // Clamp camera position within the defined bounds
+        newPosition.x = Mathf.Clamp(newPosition.x, minBounds.x, maxBounds.x);
+        newPosition.z = Mathf.Clamp(newPosition.z, minBounds.y, maxBounds.y);
 
-            cameraTransform.rotation = Quaternion.Euler(pitch, yaw, 0f);
-        }
-    }
+        // Set the camera's new position
+        transform.position = newPosition;
 
-    void RestoreOriginalPositionAndRotation()
-    {
-        cameraTransform.position = originalPosition;
-        cameraTransform.rotation = originalRotation;
+        // Check for input to control camera rotation
+        float mouseX = Input.GetAxis("Mouse X");
+        float mouseY = Input.GetAxis("Mouse Y");
+
+        // Calculate new pitch and yaw angles based on input
+        currentPitch = Mathf.Clamp(currentPitch - mouseY * rotationSpeed, minPitch, maxPitch);
+        float newYaw = transform.eulerAngles.y + mouseX * rotationSpeed;
+
+        // Set the camera's new rotation
+        transform.rotation = Quaternion.Euler(currentPitch, newYaw, 0f);
     }
 }
