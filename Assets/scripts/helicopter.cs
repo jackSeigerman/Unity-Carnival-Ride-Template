@@ -4,44 +4,43 @@ using UnityEngine;
 
 public class helicopter : MonoBehaviour
 {
-    [SerializeField] private int height = 3;
-    [SerializeField] private int speed = 1;
-    private float active = 1;
-    private bool up = true;
-    // Start is called before the first frame update
+    [SerializeField] private string direction = "up";
+    [SerializeField] private float speed = 1;
+    [SerializeField] private int height = 6;
+    // Start is called before the first frame updateww
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (active <= height)
+        if (direction == "up")
         {
-            up = true;
+            if (gameObject.transform.position.y > height)
+            {
+                direction = "down";
+                gameObject.transform.position += new Vector3(0, -1, 0) * speed * (Time.deltaTime);
 
+            }
+            else
+            {
+                gameObject.transform.position += new Vector3(0, 1, 0) * speed * (Time.deltaTime);
+            }
         }
-        else
+        if (direction == "down")
         {
-            up = false;
-
+            if (gameObject.transform.position.y < 2.75)
+            {
+                direction = "up";
+                gameObject.transform.position += new Vector3(0, 1, 0) * speed * (Time.deltaTime);
+            }
+            else
+            {
+                gameObject.transform.position += new Vector3(0, -1, 0) * speed * (Time.deltaTime);
+            }
         }
-        if (up)
-        {
-            active += 1;
-
-        }
-
-        else
-        {
-            active -= 1;
-            
-        }
-
-        Debug.Log(active);
-        transform.position += new Vector3(0, active, 0) * Time.deltaTime * speed;
-
+        Debug.Log(direction);
     }
 }
-
